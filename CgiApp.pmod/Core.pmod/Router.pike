@@ -74,18 +74,18 @@ void handleController(array callback)
         object controller = ctrlClass(request, response);
         
         //aportacion rbelmonte. with love <3
-        if(functionp(controller[ctrlAction] || functionp(controller[ctrlAction]) != UNDEFINED))
-        {
+        if(functionp(controller[ctrlAction] || functionp(controller[ctrlAction]) != UNDEFINED)) {
             handleContent(controller[ctrlAction]());
-        } else{
-            response.sendNotFoundError("El ruben es puto");
-        }
-    };
-
-    if(error) {
+            return;
+        } 
+        
         response.sendNotFoundError(
             sprintf("Action '%s' not found in \"%s.pike\"\n%O", ctrlAction, ctrlFile, error)
         );
+    };
+
+    if(error) {
+        response.sendNotFoundError("Unknown error ocurred");
     }
 }
 
