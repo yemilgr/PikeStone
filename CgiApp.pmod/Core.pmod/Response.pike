@@ -1,47 +1,101 @@
 import ".";
 
 
-void create()
+private int statusCode = 200;
+
+private string contentType = "text/html";
+
+private array(string) headers;
+
+private string output;
+
+
+object create()
 {
-    //not implemented
+    this_program::headers = ({});
+    this_program::output = "";
 }
 
-void setStatusCode(int code)
+object setStatusCode(int statusCode)
 {
-    write("Status: " + (string)code + "\n");
+    this_program::statusCode = statusCode;
+    return this_object();
 }
 
-void setContentTypeHtml()
+object setContentType(string contentType)
 {
-    write("Content-Type: text/html \n\n");
+    this_program::contentType = contentType;
+    return this_object();
 }
 
-void sendNotFoundError(string|void message)
+// object setHeader(string header)
+// {
+//     this_program::headers += header;
+//     return this_object();
+// }
+
+object setHeaders(array(string) headers)
 {
-    setStatusCode(404);
-    setContentTypeHtml();
-    
-    // if(zero_type(message)) {
-    message =  message ? message : "You may have mistyped the address or the page may have moved.";
-    // }
-    
+    this_program::headers += headers;
+    return this_object();
+}
+
+object html(string html)
+{
+    setContentType("text/html");
+    this_program::output = html;
+    return this_object();
+}
+
+object json(string json)
+{
+    setContentType("application/json");
+    this_program::output = json;
+    return this_object();
+}
+
+object notFoundError(string|void error) 
+{
+    error =  (error) ? error : "Page not found";
+
     string template = Stdio.read_file(
         sprintf("%s/views/error/%s.html", Application->rootPath, "404")
     );
 
-    string output = replace(template, (["{{content}}": message]));
+    this_program::output = replace(template, (["{{content}}": error]));
+
+    setStatusCode(404);
+    setContentType("text/html");
     
-    write(output);
+    return this_object();
 }
 
-void sendNotAuthorizedError(string|void message)
+object applicationError(string|void error) 
 {
+    error =  (error) ? error : "Error ocurred";
 
+    string template = Stdio.read_file(
+        sprintf("%s/views/error/%s.html", Application->rootPath, "500")
+    );
+
+    this_program::output = replace(template, (["{{content}}": error]));
+
+    setStatusCode(500);
+    setContentType("text/html");
+    
+    return this_object();
 }
 
-void sendOutput(string output)
+//Main function that send headers and response output/redirection
+void send(string|void output)
 {
-    setStatusCode(200);
-    setContentTypeHtml();
+    write(sprintf("Status: %s\n", (string)this_program::statusCode));
+    write(sprintf("Content-Type: %s\n\n", this_program::contentType));
+    
+    //headers
+    //sendHeaders();
+
+    //output
+    output = (output) ? output : this_program::output;
     write(output);
 }

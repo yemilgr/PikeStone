@@ -3,8 +3,9 @@ import "../.";
 inherit Core.Controller;
 
 
-
-string index()
+mixed index()
 {
-    return "handling contact " + request->getQueryString();
+    return view()->render("contact");
+
+    // return response()->html();
 }

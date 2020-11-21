@@ -22,7 +22,7 @@ string getQueryString()
     return server["QUERY_STRING"];
 }
 
-// string getBody()
-// {
+string getBody()
+{
 
-// }
+}

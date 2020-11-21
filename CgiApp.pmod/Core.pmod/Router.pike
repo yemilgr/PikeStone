@@ -1,8 +1,9 @@
 import ".";
-import "../.";
 
+// global request object
 object request;
 
+//global response object
 object response;
 
 mapping(string:mixed) routes =  ([]);
@@ -29,6 +30,11 @@ void post(string path, string|array|function callback)
 //     this_program::routes["POST"] += ([path: callback]);
 // }
 
+// void only(string methods, string path, string|array|function callback)
+// {
+//     //todo:
+// }
+
 void resolve()
 {
     string path = request->getPath();
@@ -36,7 +42,8 @@ void resolve()
     mixed callback = routes[method][path];
 
     if (zero_type(callback)) {
-        response.sendNotFoundError();
+        response->notFoundError("No callback found for matching route");
+        response->send();
         return;
     }
 
@@ -58,61 +65,65 @@ void resolve()
 
 void handleController(array callback)
 {
-    string ctrlFile   = callback[0];   //controller
+    string ctrlFile   = callback[0]; //controller
     string ctrlAction = callback[1]; //action
 
     string classPath = Application->rootPath + "/Controllers.pmod/" + ctrlFile + ".pike";
 
     //verify controller class exist
     if (!Stdio.exist(classPath)) {
-        response.sendNotFoundError(sprintf("Class \"%s.pike\" not found", ctrlFile));
+        response.notFoundError(sprintf("Class \"%s.pike\" not found", ctrlFile))->send();
         return;
     }
 
-    mixed error = catch{
+    mixed error = catch {
         program ctrlClass = compile_file(classPath);
         object controller = ctrlClass(request, response);
         
         //aportacion rbelmonte. with love <3
-        if(functionp(controller[ctrlAction] || functionp(controller[ctrlAction]) != UNDEFINED)) {
-            handleContent(controller[ctrlAction]());
+        if (!functionp(controller[ctrlAction]) || functionp(controller[ctrlAction]) == UNDEFINED) {
+            response->notFoundError(
+                sprintf("Action '%s' not found in '%s.pike'\n%O", ctrlAction, ctrlFile, error)
+            )->send();
             return;
-        } 
-        
-        response.sendNotFoundError(
-            sprintf("Action '%s' not found in \"%s.pike\"\n%O", ctrlAction, ctrlFile, error)
-        );
+        }
+
+        mixed callbackResponse = controller[ctrlAction]();
+
+        // is string
+        if (stringp(callbackResponse)) {
+            handleContent(callbackResponse);
+        }
+
+        //is response object 
+        if (objectp(callbackResponse)) {
+            handleResponse(callbackResponse);
+        }
+
+        return;
     };
 
-    if(error) {
-        response.sendNotFoundError("Unknown error ocurred");
+    if (error) {
+        response->applicationError(sprintf("An error ocurred \n%O", error))->send();
     }
 }
 
-void handleView(string view)
+void handleResponse(object callbackResponse)
 {
-    string viewPath = sprintf("%s/views/%s.html", Application->rootPath, view);
-    
-    if (Stdio.exist(viewPath)) {
-        string layoutPath = sprintf("%s/views/layout/%s.html", Application->rootPath, "app");
-        string layoutHtml = Stdio.read_file(layoutPath);
-        string viewHtml = Stdio.read_file(viewPath);
-
-        string output = replace(layoutHtml, (["{{content}}": viewHtml]));
-        
-        response.sendOutput(output);
-        return;
-    }
-    
-    response.sendNotFoundError();
+    callbackResponse->send();
 }
 
-void handleCallback(function callback)
+void handleView(string view, mapping|void data)
 {
-    response->sendOutput(callback());
+    View(response)->render(view, data)->send();
+}
+
+void handleCallback(function callbackFunction)
+{
+    response->send(callbackFunction());
 }
 
 void handleContent(string content)
 {
-    response->sendOutput(content);
+    response->send(content);
 }
