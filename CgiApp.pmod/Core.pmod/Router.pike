@@ -8,9 +8,19 @@ object response;
 
 mapping(string:mixed) routes =  ([]);
 
-void create(Request request, Response response)
+void create(Request|void request, Response|void response)
 {
     this_program::request = request;
+    this_program::response = response;
+}
+
+void setRequest(Request request)
+{
+    this_program::request = request;
+}
+
+void setResponse(Response response)
+{
     this_program::response = response;
 }
 

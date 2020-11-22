@@ -16,11 +16,14 @@ void create()
 {
     request = Request();
     response = Response();
-    router = Router(request, response);
 }
 
 //Run application
 void run()
 {
+    mixed appRoutes = compile_file(rootPath + "/routes.pike");
+    router = appRoutes()->create();
+    router->setRequest(request);
+    router->setResponse(response);
     router->resolve();
 }
