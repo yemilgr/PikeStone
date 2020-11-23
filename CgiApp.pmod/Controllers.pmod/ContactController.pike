@@ -2,10 +2,15 @@ import "../.";
 
 inherit Core.Controller;
 
-
 mixed index()
 {
-    return view()->render("contact");
+    return view()->render("contact", ([
+        "title": "Contact page",
+        "subtitle": "My subtitle page"
+    ]));
+}
 
-    // return response()->html();
+mixed save()
+{
+    return "Contact save successfully" + req()->getQueryString();
 }

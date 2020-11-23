@@ -22,7 +22,9 @@ string getQueryString()
     return server["QUERY_STRING"];
 }
 
-string getBody()
-{
+mixed all() {}
+mixed input(string|void key, mixed|void val) {}
+mixed query(string|void key, mixed|void val) {}
+bool has(string key) {}
 
-}
+string getBody() {}
