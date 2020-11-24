@@ -30,7 +30,7 @@ object setContentType(string contentType)
 
 // object setHeader(string header)
 // {
-//     this_program::headers += header;
+//     this_program::headers += ({header});
 //     return this_object();
 // }
 

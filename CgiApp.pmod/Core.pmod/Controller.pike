@@ -1,30 +1,14 @@
 import ".";
 
-private object request;
+object request;
 
-private object response;
+object response;
 
-private object viewLayout;
+object view;
 
 void create (Request|void request, Response|void response)
 {
     this_program::request = request;
     this_program::response = response;
-    this_program::viewLayout = View(response);
+    this_program::view = View(response);
 }
-
-object req()
-{
-    return this_program::request;
-}
-
-object res()
-{
-    return this_program::response;
-}
-
-object view()
-{
-    return this_program::viewLayout;
-}
-
