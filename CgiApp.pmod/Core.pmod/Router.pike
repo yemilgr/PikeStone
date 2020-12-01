@@ -6,12 +6,15 @@ object request;
 //global response object
 object response;
 
+object pathUtil;
+
 mapping(string:mixed) routes =  ([]);
 
 void create(Request|void request, Response|void response)
 {
     this_program::request = request;
     this_program::response = response;
+    this_program::pathUtil = PathUtil();
 }
 
 void setRequest(Request request)
@@ -26,19 +29,22 @@ void setResponse(Response response)
 
 void get(string path, string|array|function callback)
 {
+    path = pathUtil->removeTrailingSlash(path);
     this_program::routes["GET"] += ([path: callback]);
 }
 
 void post(string path, string|array|function callback)
 {
+    path = pathUtil->removeTrailingSlash(path);
     this_program::routes["POST"] += ([path: callback]);
 }
 
-// void any(string path, string|array|function callback) 
-// {
-//     this_program::routes["GET"] += ([path: callback]);
-//     this_program::routes["POST"] += ([path: callback]);
-// }
+void any(string path, string|array|function callback) 
+{
+    path = pathUtil->removeTrailingSlash(path);
+    this_program::routes["GET"] += ([path: callback]);
+    this_program::routes["POST"] += ([path: callback]);
+}
 
 // void only(string methods, string path, string|array|function callback)
 // {
@@ -49,31 +55,69 @@ void resolve()
 {
     string path = request->getPath();
     string method = request->getMethod();
-    mixed callback = routes[method][path];
+    mixed callback = resolveCallback(path, method);
 
-    if (zero_type(callback)) {
+    if (zero_type(callback) || callback == UNDEFINED) {
+        //check if there is a route with params for this request
         response->notFoundError("No callback found for matching route");
         response->send();
         return;
     }
 
     //is mapping -> a controller
-    if (arrayp(callback)) {
-        handleController(callback);
-    }
-
-    //is string -> view file
-    if (stringp(callback)) {
-        handleView(callback);
+    if (arrayp(callback["handler"])) {
+        handleController(callback["handler"], callback["arguments"]);
     }
 
     //is a callback
-    if (functionp(callback)) {
-        handleCallback(callback);
+    if (functionp(callback["handler"])) {
+        handleCallback(callback["handler"], callback["arguments"]);
+    }
+    
+    //is string -> view file
+    if (stringp(callback["handler"])) {
+        handleView(callback["handler"]);
     }
 }
 
-void handleController(array callback)
+mixed resolveCallback(string path, string method) 
+{
+    mapping callback = ([]);
+
+    if (!zero_type(routes[method][path])) {
+        callback["handler"] = routes[method][path];
+        callback["arguments"] = ({});
+        return callback;
+    }
+    
+    //check if there is a route with params for this request
+    foreach (routes[method]; string pathIndex; mixed callbackValue) {
+        if (search(pathIndex, "$") != -1) { // this route has params $
+            int paramsCount = String.count(pathIndex, "$");
+            array params = ({});
+            for (int i = 1; i <= paramsCount; i = i+1) {
+                string value = sprintf("$%d", i);
+                params += ({value});
+            }
+            string pathRegex = replace(pathIndex, params, "%s");
+            array paramValues = array_sscanf(path, pathRegex);
+
+            // check if this routePath has equal number of params 
+            // and last param do not contain / char
+            if ( sizeof(params) == sizeof(paramValues) && 
+                 search(paramValues[sizeof(paramValues) - 1], "/") == -1 
+                ) {
+                callback["handler"] = callbackValue;
+                callback["arguments"] = paramValues;
+                return callback;
+            }
+        }
+    }
+
+    return UNDEFINED;
+}
+
+private void handleController(array callback, array|void arguments)
 {
     string ctrlFile   = callback[0]; //controller
     string ctrlAction = callback[1]; //action
@@ -97,8 +141,9 @@ void handleController(array callback)
             )->send();
             return;
         }
-
-        mixed callbackResponse = controller[ctrlAction]();
+        
+        //pass arguments to controller func
+        mixed callbackResponse = controller[ctrlAction](@arguments); 
 
         // is string
         if (stringp(callbackResponse)) {
@@ -118,22 +163,22 @@ void handleController(array callback)
     }
 }
 
-void handleResponse(object callbackResponse)
+private void handleResponse(object callbackResponse)
 {
     callbackResponse->send();
 }
 
-void handleView(string view, mapping|void data)
+private void handleView(string view, mapping|void data)
 {
     View(response)->render(view, data)->send();
 }
 
-void handleCallback(function callbackFunction)
+private void handleCallback(function callbackFunction, array|void arguments)
 {
-    response->send(callbackFunction());
+    response->send(callbackFunction(@arguments));
 }
 
-void handleContent(string content)
+private void handleContent(string content)
 {
     response->send(content);
 }

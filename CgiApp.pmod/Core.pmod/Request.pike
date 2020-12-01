@@ -10,19 +10,23 @@ mapping cookies = ([]);
 
 mapping session = ([]);
 
-object parser;
+object pathUtil;
+
+object paramParser;
 
 void create()
 {
-    server = (mapping(string:string))getenv(); 
-    parser = RequestParser(server);
-    inputParams = parser->parseParams();
-    queryParams = parser->parseQuery();
+    server = (mapping(string:string))getenv();
+    
+    pathUtil = PathUtil();
+    paramParser = RequestParser(server);
+    inputParams = paramParser->parseParams();
+    //queryParams = paramParser->parseQuery();
 }
 
 string getPath()
-{
-    return server["PATH_INFO"] || "/";
+{   
+    return pathUtil->removeTrailingSlash(server["PATH_INFO"]);
 }
 
 string getMethod()
