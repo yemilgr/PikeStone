@@ -47,10 +47,12 @@ object html(string html)
     return this_object();
 }
 
-object json(string json)
+object json(mapping json)
 {
     setContentType("application/json");
-    this_program::output = json;
+    string jsonOutput = Standards.JSON.encode(json);
+
+    this_program::output = jsonOutput;
     return this_object();
 }
 
