@@ -1,7 +1,5 @@
 import ".";
 
-constant ARRAY_SUFFIX = "__";
-
 constant VAR_PREFIX = "VAR_";
 
 mapping server;
@@ -14,55 +12,73 @@ void create(mapping server)
 mapping parseParams()
 {
     mapping params = ([]);
-
-    if (zero_type(server["VARIABLES"])) {
+    if (zero_type(server["VARIABLES"]))
         return params;
-    }    
-    
+
     array vars = server["VARIABLES"] / " ";
 
-    foreach (vars, string var) {
-        //is array
-        if (has_suffix(var, ARRAY_SUFFIX)) {
-            string varName = replace(var, ARRAY_SUFFIX, "");
-            params[varName] = server[VAR_PREFIX + var] / "#";
+    foreach (vars;; string varName) {
+        int varLength = strlen(varName);
+        string value = server[VAR_PREFIX + varName];
 
+        // if varName do not end in '_' is a simple var right!!!
+        if (!has_suffix(varName, "_")) {
+            params[varName] = value;
+            continue;
         }
-        else {
-            params[var] = server[VAR_PREFIX + var];
+
+        //array value
+        if (varEndsWithParUnder(varName)) {
+            varName = varName[..(varLength-3)];
+            params[varName] = value / "#";
+            continue;
         }
+
+        //if varName ends only with one '_' is a mapping 
+        if (varEndWithOnlyUnder(varName)) {
+            array partsOfvar = (varName / "_") - ({""});
+            params[partsOfvar[0]] += mapArrayOfvariables(partsOfvar[1..], value);
+            continue;
+        }
+
+        //mapping value
+        if (varEndsWithImparUnder(varName)) {
+            array partsOfvar = (varName / "_") - ({""});
+            array arrayValue = value / "#";
+            params[partsOfvar[0]] += mapArrayOfvariables(partsOfvar[1..], arrayValue);
+            continue;
+        }        
     }
 
     return params;
 }
 
-
-mapping parseQuery()
+private bool varEndWithOnlyUnder(string varName)
 {
-    mapping query = ([]);
-
-    if (zero_type(server["VARIABLES"]) || zero_type(server["QUERY_STRING"])) {
-        return query;
-    }
-
-    string decodedQuery = Protocols.HTTP.uri_decode(server["QUERY_STRING"]); 
-    array vars =  server["VARIABLES"] / " ";
-   
-    foreach (vars, string var) {
-        //is array
-        if (has_suffix(var, ARRAY_SUFFIX)) {
-            string varName = replace(var, ARRAY_SUFFIX, "");
-            if (search(decodedQuery, varName + "[") >= 0) {
-                query[varName] = server[VAR_PREFIX + var] / "#";
-            }
-        }
-        else{
-            if (search(decodedQuery, var + "=") >= 0) {
-                query[var] = server[VAR_PREFIX + var];
-            }
-        }
-    }
-
-    return query;
+    int len = strlen(varName);
+    return varName[(len-1)..] == "_" && varName[(len-2)..(len-2)] != "_";
 }
 
+private bool varEndsWithParUnder(string varName) 
+{
+    int len = strlen(varName);
+    return ( varName[(len-2)..] == "__" && varName[(len-3)..(len-3)] != "_" );
+}
+
+private bool varEndsWithImparUnder(string varName) 
+{
+    int len = strlen(varName);
+    return varName[(len-3)..] == "___" && varName[(len-4)..(len-4)] != "_";
+}
+
+mapping mapArrayOfvariables(array variables, mixed value) 
+{
+    //stop condition
+    if (sizeof(variables) == 1) {
+        return ([variables[0]: value]);
+    }
+
+    array newvariables = Array.pop(variables);
+
+    return mapArrayOfvariables(newvariables[1], ([newvariables[0]: value]));
+}
