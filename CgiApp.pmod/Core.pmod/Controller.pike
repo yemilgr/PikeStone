@@ -4,11 +4,18 @@ object request;
 
 object response;
 
-object view;
-
 void create (Request|void request, Response|void response)
 {
     this_program::request = request;
     this_program::response = response;
-    this_program::view = View(response);
+}
+
+object validator()
+{
+    return Http.Validator(request->all());
+}
+
+object view()
+{
+    return View(response);
 }
