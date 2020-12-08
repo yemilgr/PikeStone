@@ -1,27 +1,31 @@
 import ".";
 
+
 mapping(string:string) server;
 
 mapping inputParams = ([]);
 
 mapping queryParams = ([]);
 
+mapping files = ([]);
+
 mapping cookies = ([]);
 
 mapping session = ([]);
 
-object pathUtil;
+object pathUtil = Utils.PathUtil();
 
 object paramParser;
 
 void create()
 {
     server = (mapping(string:string))getenv();
-    
-    pathUtil = PathUtil();
-    paramParser = RequestParser(server);
-    inputParams = paramParser->parseParams();
-    //queryParams = paramParser->parseQuery();
+    paramParser = Http.RequestParser(server);
+    paramParser->parseParams();
+    inputParams = paramParser->getInputParams();
+    queryParams = paramParser->getQueryParams();
+    cookies     = paramParser->getCookieParams();
+    //files     = paramParser->getFiles();
 }
 
 string getPath()
@@ -36,12 +40,17 @@ string getMethod()
 
 string getQueryString()
 {
-    return server["QUERY_STRING"];
+    return server["QUERY_STRING"] || "";
 }
 
 mixed all() 
 {
     return inputParams;
+}
+
+bool has(string key) 
+{
+    return !zero_type(inputParams[key]);
 }
 
 mixed input(string|void key, mixed|void value) 
@@ -57,7 +66,6 @@ mixed input(string|void key, mixed|void value)
     return inputParams[key];
 }
 
-
 mixed query(string|void key, mixed|void value) 
 {
     if (zero_type(key)) {
@@ -71,9 +79,40 @@ mixed query(string|void key, mixed|void value)
     return queryParams[key];
 }
 
-bool has(string key) 
+mixed getCookie(string|void name, mixed|void value)
 {
-    return !zero_type(inputParams[key]);
+    if (zero_type(name)) {
+        return cookies;
+    }
+
+    if (zero_type(cookies[name])) {
+        return value;
+    }
+
+    return cookies[name];
 }
 
-string getBody() {}
+void setCookie(string name, string value, array|void extra)
+{
+    cookies[name] = value;
+
+    string header = sprintf("Set-Cookie: %s=%s; SameSite=Strict; Path=/", name, value);
+    
+    if (!zero_type(extra)) {
+        string extraOptions = ";" + (extra * ";");
+        header += extraOptions;
+    }
+    
+    //send cookie
+    write(header);
+}
+
+string getBody() 
+{
+    if (server["CONTENT_LENGTH"]) {
+        int contentLength = (int)(server["CONTENT_LENGTH"] - " ");
+        return Stdio.stdin->read(contentLength);
+    }
+    
+    return "";
+}

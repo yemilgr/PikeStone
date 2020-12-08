@@ -6,7 +6,7 @@ object request;
 //global response object
 object response;
 
-object pathUtil;
+object pathUtil = Utils.PathUtil();
 
 mapping(string:mixed) routes =  ([]);
 
@@ -14,7 +14,6 @@ void create(Request|void request, Response|void response)
 {
     this_program::request = request;
     this_program::response = response;
-    this_program::pathUtil = PathUtil();
 }
 
 void setRequest(Request request)
