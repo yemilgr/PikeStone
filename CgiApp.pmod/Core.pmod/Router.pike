@@ -38,17 +38,40 @@ void post(string path, string|array|function callback)
     this_program::routes["POST"] += ([path: callback]);
 }
 
-void any(string path, string|array|function callback) 
+void put(string path, string|array|function callback)
 {
     path = pathUtil->removeTrailingSlash(path);
-    this_program::routes["GET"] += ([path: callback]);
-    this_program::routes["POST"] += ([path: callback]);
+    this_program::routes["PUT"] += ([path: callback]);
 }
 
-// void only(string methods, string path, string|array|function callback)
-// {
-//     //todo:
-// }
+void delete(string path, string|array|function callback)
+{
+    path = pathUtil->removeTrailingSlash(path);
+    this_program::routes["DELETE"] += ([path: callback]);
+}
+
+void options(string path, string|array|function callback)
+{
+    path = pathUtil->removeTrailingSlash(path);
+    this_program::routes["OPTIONS"] += ([path: callback]);
+}
+
+void any(string methods, string path, string|array|function callback) 
+{
+    path = pathUtil->removeTrailingSlash(path);
+    methods = methods / "|";
+    foreach(map(methods, upper_case);; string method) {
+        this_program::routes[method] += ([path: callback]);
+    }
+}
+
+void all(string path, string|array|function callback)
+{
+    path = pathUtil->removeTrailingSlash(path);
+    foreach(({"GET", "POST", "PUT", "DELETE", "OPTIONS"});; string method) {
+        this_program::routes[method] += ([path: callback]);
+    }
+}
 
 void resolve()
 {
