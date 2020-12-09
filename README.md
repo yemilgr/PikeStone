@@ -90,7 +90,7 @@ router->any("POST|PUT", "/post/$1/comment/$2", ({"PostController", "addComment"}
 ```
 
 ## Request 
-The request class is the one in charge of handling the request input and data.
+The request class is in charge of handling the request input and data.
 
 ### Request functions
 
@@ -131,7 +131,7 @@ request()->query("name", "Jhon Doe");
 request()->getCookie("lastAccess", "31 Dic 2020");
 ```
 
-`void setCookie(string name, string value, array|void extra)` sets a cookie [Set-Cookie Docs](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Set-Cookie)
+`void setCookie(string name, string value, array|void extra)` sets a cookie [Set-Cookie Docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie)
 ```pike
 request()->setCookie("user", "Yemil", ({
     "Secure",
@@ -146,6 +146,69 @@ request()->getBody();
 ```
 
 ## Response
+
+The controller class is in charge of creating a respond to send to browser or client who send a request. 
+
+### Response functions
+
+`object setStatusCode(int statusCode)` sets the status code of the response.
+```pike
+response()->setStatusCode(201);
+```
+
+`object setContentType(string contentType)` sets the content type of the response.
+```pike
+response()->setContentType("application/json");
+response()->setContentType("text/plain");
+```
+
+`object setHeader(string header)` set a response header. [HTTP Headers Docs](https://developer.cdn.mozilla.net/en-US/docs/Web/HTTP/Headers)
+```pike
+response->setHeader("Content-Type: application/json");
+response->setHeader("Connection: Keep-Alive");
+response->setHeader("Keep-Alive: timeout=5, max=997");
+```
+
+`object setHeaders(array(string) headers)` sets an array of header values
+```pike
+response->setHeaders(({
+    "Content-Type: application/json",
+    "Connection: Keep-Alive",
+}));
+```
+
+`object html(string html)` send a html respond to the client
+```pike
+return response->html("<h1>Hello world</h1>");
+```
+
+`object json(mapping json)` send a json respond to the client
+```pike
+return response->json(([
+    "code": 200,
+    "message": "Hello World"
+]));
+```
+
+`void redirect(string path)` send a 302 redirecting response 
+```pike
+return response->redirect("https://google.com");
+```
+
+`object notFoundError(string|void error)` send a 404 Not Found response
+```pike
+return response()->notFoundError("The user does not exist");
+```
+
+`object accessForbiddenError(string|void error)` send a 403 Forbidden response
+```pike
+return response()->accessForbiddenError("Your are not authorized");
+```
+
+`object applicationError(string|void error)` 
+```pike
+return response()->applicationError("And unknown error occurred. Please try again in a few minutes");
+```
 
 ## Controllers 
 
