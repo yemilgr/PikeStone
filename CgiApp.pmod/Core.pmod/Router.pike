@@ -8,7 +8,15 @@ object response;
 
 object pathUtil = Utils.PathUtil();
 
-mapping(string:mixed) routes =  ([]);
+mapping(string:mixed) routes =  ([
+    "GET":      ([]),
+    "POST":     ([]),
+    "PUT":      ([]),
+    "DELETE":   ([]),
+    "OPTIONS":  ([]),
+    "HEAD":     ([]),
+    "PATCH":    ([]),
+]);
 
 void create(Request|void request, Response|void response)
 {
@@ -59,8 +67,8 @@ void options(string path, string|array|function callback)
 void any(string methods, string path, string|array|function callback) 
 {
     path = pathUtil->removeTrailingSlash(path);
-    methods = methods / "|";
-    foreach(map(methods, upper_case);; string method) {
+    array methodsArr = methods / "|";
+    foreach(map(methodsArr, upper_case);; string method) {
         this_program::routes[method] += ([path: callback]);
     }
 }
@@ -75,30 +83,35 @@ void all(string path, string|array|function callback)
 
 void resolve()
 {
-    string path = request->getPath();
-    string method = request->getMethod();
-    mixed callback = resolveCallback(path, method);
+    mixed error = catch {
+        string path     = request->getPath();
+        string method   = request->getMethod();
+        mixed callback  = resolveCallback(path, method);
 
-    if (zero_type(callback) || callback == UNDEFINED) {
-        //check if there is a route with params for this request
-        response->notFoundError("No callback found for matching route");
-        response->send();
-        return;
-    }
+        if (zero_type(callback) || callback == UNDEFINED) {
+            //check if there is a route with params for this request
+            response->notFoundError("No callback found for matching route")->send();
+            return;
+        }
 
-    //is mapping -> a controller
-    if (arrayp(callback["handler"])) {
-        handleController(callback["handler"], callback["arguments"]);
-    }
+        //is mapping -> a controller
+        if (arrayp(callback["handler"])) {
+            handleController(callback["handler"], callback["arguments"]);
+        }
 
-    //is a callback
-    if (functionp(callback["handler"])) {
-        handleCallback(callback["handler"], callback["arguments"]);
-    }
-    
-    //is string -> view file
-    if (stringp(callback["handler"])) {
-        handleView(callback["handler"]);
+        //is a callback
+        if (functionp(callback["handler"])) {
+            handleCallback(callback["handler"], callback["arguments"]);
+        }
+        
+        //is string -> view file
+        if (stringp(callback["handler"])) {
+            handleView(callback["handler"]);
+        }
+    };
+   
+    if (error) {
+        response->applicationError(sprintf("%O", error))->send();
     }
 }
 
@@ -126,7 +139,7 @@ mixed resolveCallback(string path, string method)
 
             // check if this routePath has equal number of params 
             // and last param do not contain / char
-            if ( sizeof(params) == sizeof(paramValues) && 
+            if (sizeof(params) == sizeof(paramValues) && 
                  search(paramValues[sizeof(paramValues) - 1], "/") == -1 
                 ) {
                 callback["handler"] = callbackValue;
@@ -142,7 +155,7 @@ mixed resolveCallback(string path, string method)
 private void handleController(array callback, array|void arguments)
 {
     string ctrlFile   = callback[0]; //controller
-    string ctrlAction = callback[1]; //action
+    string ctrlAction = sizeof(callback) > 1 ? callback[1] : "index"; //action
 
     string classPath = Application->rootPath + "/Controllers.pmod/" + ctrlFile + ".pike";
 
@@ -181,7 +194,7 @@ private void handleController(array callback, array|void arguments)
     };
 
     if (error) {
-        response->applicationError(sprintf("An error ocurred \n%O", error))->send();
+        response->applicationError(sprintf("%O", error))->send();
     }
 }
 
