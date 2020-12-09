@@ -1,18 +1,18 @@
 # Pike web-cgi micro-framework
 
-[Installation](##Installation)
+[Installation](#Installation)
 
-[Routing](##Routing)
+[Routing](#Routing)
 
-[Request](##Request)
+[Request](#Request)
 
-[Response](##Response)
+[Response](#Response)
 
-[Controllers](##Controllers)
+[Controllers](#Controllers)
 
-[Models](##Models)
+[Models](#Models)
 
-[Views](##Views)
+[Views](#Views)
 
 ---
 
@@ -90,6 +90,60 @@ router->any("POST|PUT", "/post/$1/comment/$2", ({"PostController", "addComment"}
 ```
 
 ## Request 
+The request class is the one in charge of handling the request input and data.
+
+### Request functions
+
+`string getMethod()` return the http request method
+```pike
+//"GET", "POST", "PUT", "DELETE" etc
+request()->getMethod(); 
+```
+
+`string getQueryString()` return the query string
+```pike
+//"GET", "POST", "PUT", "DELETE" etc
+request()->getQueryString(); 
+```
+
+`mapping all()` return an indexed mappping of all input parameters in the request 
+```pike
+request()->all();
+```
+
+`bool has(string key)` checks if a parameter exists in the request 
+```pike
+request()->has("name"); 
+```
+
+`mixed input(string|void key, mixed|void value)` return the value of key, if key is not present return value
+```pike
+request()->input("name", "Jhon Doe"); 
+```
+
+`mixed query(string|void key, mixed|void value)` return the value of key only on the QueryString, if key is not present return value
+```pike
+request()->query("name", "Jhon Doe"); 
+```
+
+`mixed getCookie(string|void name, mixed|void value)` return the cookie value if cookie exist, otherwise return the default value
+```pike
+request()->getCookie("lastAccess", "31 Dic 2020");
+```
+
+`void setCookie(string name, string value, array|void extra)` sets a cookie [Set-Cookie Docs](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Set-Cookie)
+```pike
+request()->setCookie("user", "Yemil", ({
+    "Secure",
+    "SameSite=Strict",
+    "HttpOnly"
+}));
+```
+
+`string getBody()` return the raw body of the request.
+```pike
+request()->getBody();
+```
 
 ## Response
 
