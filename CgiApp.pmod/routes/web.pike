@@ -1,4 +1,4 @@
-import ".";
+import "../.";
 
 mixed router = Core.Router();
 

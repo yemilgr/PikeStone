@@ -21,9 +21,11 @@ void create()
 //Run application
 void run()
 {
-    mixed appRoutes = compile_file(rootPath + "/routes.pike");
+    mixed appRoutes = compile_file(rootPath + "/routes/web.pike");
+    
     router = appRoutes()->create();
-    router->setRequest(request);
-    router->setResponse(response);
-    router->resolve();
+    
+    router->setRequest(request)
+        ->setResponse(response)
+        ->resolve();
 }

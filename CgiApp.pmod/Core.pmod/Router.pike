@@ -24,14 +24,16 @@ void create(Request|void request, Response|void response)
     this_program::response = response;
 }
 
-void setRequest(Request request)
+object setRequest(Request request)
 {
     this_program::request = request;
+    return this_object();
 }
 
-void setResponse(Response response)
+object setResponse(Response response)
 {
     this_program::response = response;
+    return this_object();
 }
 
 void get(string path, string|array|function callback)
