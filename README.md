@@ -1,6 +1,7 @@
 # Pike web-cgi micro-framework
+![Pike Stone](https://media0.giphy.com/media/qN9x0UIc0Rhg4/giphy.gif "PikeStone Dino")
 
-[Installation](#Installation)
+[QuickStart](#QuickStart)
 
 [Routing](#Routing)
 
@@ -16,16 +17,16 @@
 
 ---
 
-## Installation
+## QuickStart
 
 1- Download or `git clone` this repo inside your `bin-cgi` root folder.
 
-2- Configure redirect module on the server in order to handle all request in a single cgi file `app.cgi`.
+2- Configure redirect module on the server in order to handle all request in a single cgi file `app.cgi`
 
 ```roxen
 /(.*)    /cgi-bin/app.cgi/$1
 ```
-3- Add your app routes in `CgiApp.pmod/routes.pike`
+3- Add your app routes in `CgiApp.pmod/routes/web.pike`
 
 ## Routing
 
