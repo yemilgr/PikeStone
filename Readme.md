@@ -7,9 +7,8 @@
 
 [3 Request](#3-Request)
 
-- [3.1 Request functions](#3.1-Request-Functions)
-
-- [3.2 Input Validation](#3.2-Input-Validation)
+- [3.1 Request functions](#31-Request-Functions)
+- [3.2 Input Validation](#32-Input-Validation)
 
 [4 Response](#4-Response)
 
@@ -22,8 +21,8 @@
 [7 Views](#7-Views)
 
 [8 Libraries](#8-Libraries)
-- [8.1 Validation](#8.1-Validation)
-- [8.2 QueryBuilder](#8.2-QueryBuilder)
+- [8.1 Validation](#81-Validation)
+- [8.2 QueryBuilder](#82-QueryBuilder)
 
 ---
 
