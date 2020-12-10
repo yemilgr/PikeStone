@@ -1,11 +1,11 @@
 # Pike web-cgi micro-framework
 ![Pike Stone](https://media0.giphy.com/media/qN9x0UIc0Rhg4/giphy.gif "PikeStone Dino")
 
-[1 QuickStart](#1QuickStart)
+[1 QuickStart](#1-QuickStart)
     
-[2 Routing](#2Routing)
+[2 Routing](#2-Routing)
 
-[3 Request](#3Request)
+[3 Request](#3-Request)
 
 - [3.1 Request functions](#Request-Functions)
 
@@ -23,7 +23,7 @@
 
 ---
 
-## 1.QuickStart
+## 1. QuickStart
 
 - Download or `git clone` this repo inside your `bin-cgi` root folder.
 
@@ -34,7 +34,7 @@
     ```
 - Add your app routes in `CgiApp.pmod/routes/web.pike`
 
-## 2.Routing
+## 2. Routing
 
 ### Routes with lambda functions callback
 
@@ -96,7 +96,7 @@ router->post("/contact", ({"ContactController", "save"}));
 router->any("POST|PUT", "/post/$1/comment/$2", ({"PostController", "addComment"}));
 ```
 
-## 3.Request 
+## 3. Request 
 The request class is in charge of handling the request input and data.
 
 ### Request functions
