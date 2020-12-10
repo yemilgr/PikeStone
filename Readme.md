@@ -1,34 +1,42 @@
 # Pike web-cgi micro-framework
 ![Pike Stone](https://media0.giphy.com/media/qN9x0UIc0Rhg4/giphy.gif "PikeStone Dino")
 
-[QuickStart](#QuickStart)
+[1 QuickStart](#1QuickStart)
+    
+[2 Routing](#2Routing)
 
-[Routing](#Routing)
+[3 Request](#3Request)
 
-[Request](#Request)
+- [3.1 Request functions](#Request-Functions)
 
-[Response](#Response)
+- [3.2 Input Validation](#Input-Validation)
 
-[Controllers](#Controllers)
+[4 Response](#4Response)
 
-[Models](#Models)
+- [4.1 Response functions](#Response-Functions)
 
-[Views](#Views)
+[5 Controllers](#5Controllers)
+
+[6 Models](#6Models)
+
+[7 Views](#7Views)
+
 
 ---
 
-## QuickStart
 
-1- Download or `git clone` this repo inside your `bin-cgi` root folder.
+## 1.QuickStart
 
-2- Configure redirect module on the server in order to handle all request in a single cgi file `app.cgi`
+- Download or `git clone` this repo inside your `bin-cgi` root folder.
 
-```roxen
-/(.*)    /cgi-bin/app.cgi/$1
-```
-3- Add your app routes in `CgiApp.pmod/routes/web.pike`
+- Configure redirect module on the server in order to handle all request in a single cgi file `app.cgi`
 
-## Routing
+    ```roxen
+    /(.*)    /cgi-bin/app.cgi/$1
+    ```
+- Add your app routes in `CgiApp.pmod/routes/web.pike`
+
+## 2.Routing
 
 ### Routes with lambda functions callback
 
@@ -90,7 +98,7 @@ router->post("/contact", ({"ContactController", "save"}));
 router->any("POST|PUT", "/post/$1/comment/$2", ({"PostController", "addComment"}));
 ```
 
-## Request 
+## 3.Request 
 The request class is in charge of handling the request input and data.
 
 ### Request functions
@@ -146,7 +154,12 @@ request()->setCookie("user", "Yemil", ({
 request()->getBody();
 ```
 
-## Response
+
+
+
+### Input Validation
+
+## 4.Response
 
 The controller class is in charge of creating a respond to send to browser or client who send a request. 
 
@@ -211,9 +224,79 @@ return response()->accessForbiddenError("Your are not authorized");
 return response()->applicationError("And unknown error occurred. Please try again in a few minutes");
 ```
 
-## Controllers 
+## 5.Controllers 
+Controllers are the classes that handles business-related tasks, and should be placed inside the `Controllers.pmod` folder.
 
-## Models 
+Every controller must inherit the base `Core.Controller.pike` class.
 
-## Views
+Function defined in controllers are called `actions`. 
+
+Every action must return a string or a response instance.
+
+In any action you can access to these globals functions defined in `Controller.pike` class.
+
+```pike
+// return a instance of Request Class
+request()
+
+// return a instance of Response Class
+response()
+
+//return a instance of Input Validator Class
+validator()
+
+//return a instance of Views Class
+view()
+```
+
+Example controller `HomeController.pike`
+```pike
+import "../.";
+
+inherit Core.Controller;
+
+mixed index()
+{
+    string name = request()->input("name");
+
+    return sprintf("Hello %s, you are in home", name);
+}
+
+mixed mustBeSomeone()
+{
+    mixed validator = validator();
+
+    // input 'name' must be required and a min length of 5 characters
+    mapping validData = validator->validate([(
+        "name": "required|min_length:5"
+    )]);
+
+    if (validator->hasErrors()) {
+         mixed errors = validator->errors();
+         return sprintf("<pre>Errors: \n\n %O</pre>", errors);    
+    }
+
+    return sprintf("Hello %s, you are in home", validData["name"]);
+}
+
+mixed hello(string name)
+{
+    return view()->render("hello", ([
+        "name": name
+    ]));
+}
+
+mixed helloJson(string name)
+{
+    return response()->json(([
+        "success": true,
+        "message": "Hello " + name
+    ]));
+}
+```
+
+
+## 6.Models 
+
+## 7.Views
 
