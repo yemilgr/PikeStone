@@ -1,31 +1,31 @@
 import ".";
 
-object request;
+object requestInstance;
 
-object response;
+object responseInstance;
 
 void create (Request|void request, Response|void response)
 {
-    this_program::request = request;
-    this_program::response = response;
+    this_program::requestInstance = request;
+    this_program::responseInstance = response;
 }
 
-object req()
+object reqquest()
 {
-    return this_program::request;
+    return this_program::requestInstance;
 }
 
-object res()
+object response()
 {
-    return this_program::response;
+    return this_program::responseInstance;
 }
 
 object validator()
 {
-    return Http.Validator(request->all());
+    return Http.Validator(requestInstance->all());
 }
 
 object view()
 {
-    return View(response);
+    return View(responseInstance);
 }
