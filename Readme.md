@@ -7,19 +7,23 @@
 
 [3 Request](#3-Request)
 
-- [3.1 Request functions](#Request-Functions)
+- [3.1 Request functions](#3.1-Request-Functions)
 
-- [3.2 Input Validation](#Input-Validation)
+- [3.2 Input Validation](#3.2-Input-Validation)
 
-[4 Response](#4Response)
+[4 Response](#4-Response)
 
-- [4.1 Response functions](#Response-Functions)
+- [4.1 Response functions](#4.1-Response-Functions)
 
-[5 Controllers](#5Controllers)
+[5 Controllers](#5-Controllers)
 
-[6 Models](#6Models)
+[6 Models](#6-Models)
 
-[7 Views](#7Views)
+[7 Views](#7-Views)
+
+[8 Libraries](#8-Libraries)
+- [8.1 Validation](#8.1-Validation)
+- [8.2 QueryBuilder](#8.2-QueryBuilder)
 
 ---
 
@@ -99,7 +103,7 @@ router->any("POST|PUT", "/post/$1/comment/$2", ({"PostController", "addComment"}
 ## 3. Request 
 The request class is in charge of handling the request input and data.
 
-### Request functions
+### 3.1 Request functions
 
 `string getMethod()` return the http request method
 ```pike
@@ -155,13 +159,13 @@ request()->getBody();
 
 
 
-### Input Validation
+### 3.2 Input Validation
 
-## 4.Response
+## 4. Response
 
 The controller class is in charge of creating a respond to send to browser or client who send a request. 
 
-### Response functions
+### 4.1 Response functions
 
 `object setStatusCode(int statusCode)` sets the status code of the response.
 ```pike
@@ -222,7 +226,7 @@ return response()->accessForbiddenError("Your are not authorized");
 return response()->applicationError("And unknown error occurred. Please try again in a few minutes");
 ```
 
-## 5.Controllers 
+## 5. Controllers 
 Controllers are the classes that handles business-related tasks, and should be placed inside the `Controllers.pmod` folder.
 
 Every controller must inherit the base `Core.Controller.pike` class.
@@ -294,7 +298,12 @@ mixed helloJson(string name)
 ```
 
 
-## 6.Models 
+## 6. Models 
 
-## 7.Views
+## 7. Views
 
+## 8. Libraries
+
+## 8.1 Validation
+
+## 8.2 QueryBuilder
