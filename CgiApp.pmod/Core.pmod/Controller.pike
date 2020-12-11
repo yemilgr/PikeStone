@@ -10,7 +10,7 @@ void create (Request|void request, Response|void response)
     this_program::responseInstance = response;
 }
 
-object reqquest()
+object request()
 {
     return this_program::requestInstance;
 }
