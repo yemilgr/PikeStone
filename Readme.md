@@ -16,7 +16,12 @@
 
 [5 Controllers](#5-Controllers)
 
+- [5.1 Controller functions](#4.1-Controller-Functions)
+
 [6 Models](#6-Models)
+
+- [6.1 Request functions](#61-Model-Definition)
+- [6.2 Input Validation](#62-Common-Functions)
 
 [7 Views](#7-Views)
 
@@ -234,7 +239,8 @@ Function defined in controllers are called `actions`.
 
 Every action must return a string or a response instance.
 
-In any action you can access to these globals functions defined in `Controller.pike` class.
+### 5.1 Controller functions 
+Common functions defined in Base `Controller.pike` class.
 
 ```pike
 // return a instance of Request Class
@@ -298,11 +304,111 @@ mixed helloJson(string name)
 
 
 ## 6. Models 
+Models are classes that handles data manipulation. 
+In other words, the model is responsible for managing the data of the application. It receives user input from the controller.
+
+Every model must inherit the base `Core.Model.pike` class.
+
+### 6.1 Model definition
+
+```pike 
+import "../.";
+
+inherit Core.Model;
+
+string table = "users"; // defines the table associated with this model Class
+string pk    = "id";    // defines the primary key of this Class
+
+```
+
+### 6.2 Common functions
+
+Consider a `UsersController.pike`
+```pike 
+import "../.";
+inherit Core.Controller;
+
+object userModel = Models.UserModel();
+
+mixed index()
+{
+    // SELECT QUERIES
+
+    // raw query
+    mixed result = userModel->query("select * from users where id in (1, 2, 3)");
+
+    // find user by primary key
+    mixed user = userModel->find(100);
+    mixed users = userModel->find(({100, 999}));
+
+    // find a user by a custom column
+    user = userModel->findBy("email", "yemilgr@pikestone.com");
+    users = userModel->findAll();
+
+    // INSERT QUERIES
+
+    mixed result = userModel->insert(([
+        "email": "yemilgr@pikestone.com",
+        "password": "secret"
+    ]));
+
+    // UPDATE QUERIES
+    mapping data = ([
+        "password": "new-secret"
+    ]);
+
+    userModel->update(1, data);
+    userModel->update(({1, 2}), data);
+    userModel->updateWhere("email", "yemilgr@pikestone.com", data);
+
+    // DETELE QUERY
+    userModel->delete(1);
+    userModel->delete(({1, 2}));
+    userModel->deleteWhere("email", "yemilgr@pikestone.com");
+}
+
+```
 
 ## 7. Views
+A view is simply a web page, or a page fragment, like a header, footer, sidebar, etc, that produces a response for the browser.
+
+Views are placed in `views` folder they are never called directly, they must be loaded by a controller.
+
+A base template is define in `views/layout/app.html` and will be used to render the aps views inside it.
+
+Consider this UserController class.
+
+```pike 
+import "../.";
+inherit Core.Controller;
+
+mixed newUser() 
+{
+    // render the view template located in view/user/newForm.html
+    return view()->render("user/newForm");
+}
+
+mixed showDetails() 
+{
+    mixed user = User();
+
+    // render the view template located in view/user/details.html
+    return view()->render("user/details", ([
+        "userName": user->name,
+        "userEmail": user->email
+    ]));
+}
+```
+
+Example Template locate at `view/user/details`
+```html
+<h1>User Details</h1>
+<p>Name: {{userName}}</p>
+<p>Email: {{userEmail}}</p>
+```
 
 ## 8. Libraries
 
-## 8.1 Validation
+### 8.1 Validation
 
-## 8.2 QueryBuilder
+### 8.2 QueryBuilder
