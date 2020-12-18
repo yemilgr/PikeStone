@@ -20,8 +20,9 @@
 
 [6 Models](#6-Models)
 
-- [6.1 Request functions](#61-Model-Definition)
-- [6.2 Input Validation](#62-Common-Functions)
+- [6.1 Database connection](#61-Database-Connection)
+- [6.2 Model definition](#62-Model-Definition)
+- [6.3 Common functions](#63-Common-Functions)
 
 [7 Views](#7-Views)
 
@@ -304,24 +305,29 @@ mixed helloJson(string name)
 
 
 ## 6. Models 
+
+### 6.1 Database connection
+ 
+ A config file lets you store your database connection values (username, password, database name, etc.). The config file is located at `config/database.h`. You can also set database connection values in the Model class. See below for more details.
+
+### 6.2 Model definition
+
 Models are classes that handles data manipulation. 
 In other words, the model is responsible for managing the data of the application. It receives user input from the controller.
 
 Every model must inherit the base `Core.Model.pike` class.
-
-### 6.1 Model definition
 
 ```pike 
 import "../.";
 
 inherit Core.Model;
 
-string table = "users"; // defines the table associated with this model Class
-string pk    = "id";    // defines the primary key of this Class
-
+string connection = "production";   // defines the DB connection, default to "default"
+string table = "users";             // defines the table associated with this model Class
+string pk    = "user_id";           // defines the primary key of this Model Class, default to "id"
 ```
 
-### 6.2 Common functions
+### 6.3 Common functions
 
 Consider a `UsersController.pike`
 ```pike 
@@ -361,7 +367,7 @@ mixed index()
     userModel->update(({1, 2}), data);
     userModel->updateWhere("email", "yemilgr@pikestone.com", data);
 
-    // DETELE QUERY
+    // DELETE QUERY
     userModel->delete(1);
     userModel->delete(({1, 2}));
     userModel->deleteWhere("email", "yemilgr@pikestone.com");
@@ -374,10 +380,27 @@ A view is simply a web page, or a page fragment, like a header, footer, sidebar,
 
 Views are placed in `views` folder they are never called directly, they must be loaded by a controller.
 
-A base template is define in `views/layout/app.html` and will be used to render the aps views inside it.
+A base template is define in `views/layout/app.html` and will be use to render the other views.
+
+Consider a base template defined by this.
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App</title>
+</head>
+<body>
+    <!-- {{content}} will embed view contents -->
+    <main role="main" class="container">
+        {{content}}
+    </main>
+</body>
+</html>
+```
 
 Consider this UserController class.
-
 ```pike 
 import "../.";
 inherit Core.Controller;
@@ -400,7 +423,7 @@ mixed showDetails()
 }
 ```
 
-Example Template locate at `view/user/details`
+Example Template locate at `view/user/details.html`
 ```html
 <h1>User Details</h1>
 <p>Name: {{userName}}</p>
@@ -411,4 +434,122 @@ Example Template locate at `view/user/details`
 
 ### 8.1 Validation
 
+The validation class defines a sort of rules to help validate user input.
+
+Consider this example
+```pike
+import "../.";
+inherit Core.Controller;
+
+object userModel = Models.UsersModel();
+
+mixed insertUser()
+{
+    mixed validator = validator();
+    
+    mixed data = validator->validate(([
+        "id": "required|integer",
+        "name": "required|alpha|min_length:50",
+        "notes": "required|array"
+    ]));
+
+    if (validator->hasErrors()) {
+        mixed errors = validator->errors();
+        return view()->render("user/error", ([
+            "errors": errors 
+        ]));
+    }
+
+    userModel->insert(data);
+ 
+    return view()->render("user/success", ([
+        "message": "The user has been save successfully"
+    ]));
+}
+```
+
+#### 8.1.1 Validation available rules
+
+| Rule           | Parameter | Description       |
+| ---------------|:---------:| :-----------------|
+| `required`     | No        | Fails if the field is empty array, empty string, UNDEFINED or false|
+| `alpha`        | No        | Fails if field has anything other than alphabetic characters.	|
+| `alpha_numeric`| No        | Fails if field contains anything other than alphanumeric characters.	| 
+| `integer`      | No        | Fails if field is not a integer number. |
+| `float`        | No        | Fails if field is not a float number. |
+| `array`        | No        | Fails if field is not a array |
+| `base64`       | No        | Fails if field is not a base64 string |
+| `email`        | No        | Fails if field is not a valid email address |
+| `phone`        | No        | Fails if field is not a valid phone number |
+| `min_length`   | Yes       | Fails if field is shorter than the parameter :value |
+| `max_length`   | Yes       | Fails if field is longer than the parameter :value |
+
+More rules can be defined...
+
 ### 8.2 QueryBuilder
+
+ The QueryBuilder pattern allows information to be retrieved, inserted, and updated in your database with minimal scripting. In some cases, only one or two lines of code are necessary to perform a database action.
+
+ Consider this example in a UserController Class
+ ```pike 
+import "../.";
+
+inherit Core.Controller;
+
+object userModel = Models.UsersModel();
+
+mixed index()
+{
+    mixed builder = userModel->queryBuilder("u");   // create and instance of QueryBuilder
+
+    mixed result = builder->select("u.id, u.estado, user")
+        ->innerJoin("datos d", "d.id_user = u.id")
+        ->whereIn("u.id", ({100, 999}))
+        ->orderBy("u.name", "desc")
+        ->orderBy("u.estado", "desc")
+        ->limit(100, 0)
+        ->get();
+
+    return sprintf("%O", result);
+}
+ ```
+
+ #### 8.2.1 Common functions
+ 
+ `mixed get(int|void limit, int|void offset)` execute and returns the query results, limit and offset optionally.
+
+ `mixed first()` execute and returns the first result
+
+ `mixed getWhere(mapping conditions, int|void limit, int|void offset)` execute and returns the query results matching conditions, limit and offset optionally. 
+
+ `int count()` return the count of the query results
+
+`object select(string columns)` sets the 'select' fields in the query
+
+`object selectMax(string column)` set the MAX(field) in the query
+
+`object selectMin(string column)` set the MIN(field) in the query
+
+`object where(string column, mixed value)` sets a where condition in the query
+
+`object orWhere(string column, mixed value)`
+
+`object whereIn(string column, array values)`
+
+`object orWhereIn(string column, array values)`
+
+`object orderBy(string column, string|void direction)`
+
+`object innerJoin(string joinTable, string joinCondition)`
+
+`object leftJoin(string joinTable, string joinCondition)`
+
+`object rightJoin(string joinTable, string joinCondition)`
+
+`object outerJoin(string joinTable, string joinCondition)`
+
+`object limit(int limit)`
+
+`object offset(int offset)`
+
+`string getQuery()` return the query as a string for debugging purposes
