@@ -166,6 +166,8 @@ request()->getBody();
 
 ### 3.2 Input Validation
 
+See [8.1 Validation](#81-Validation)
+
 ## 4. Response
 
 The controller class is in charge of creating a respond to send to browser or client who send a request. 
@@ -516,40 +518,102 @@ mixed index()
 
  #### 8.2.1 Common functions
  
- `mixed get(int|void limit, int|void offset)` execute and returns the query results, limit and offset optionally.
+ ```pike
+ mixed get(int|void limit, int|void offset)
+ ``` 
+ execute and returns the query results, limit and offset optionally.
 
- `mixed first()` execute and returns the first result
+ ```pike
+ mixed first()
+ ```
+ execute and returns the first result
 
- `mixed getWhere(mapping conditions, int|void limit, int|void offset)` execute and returns the query results matching conditions, limit and offset optionally. 
+ ```pike
+ mixed getWhere(mapping conditions, int|void limit, int|void offset)
+ ``` 
+ execute and returns the query results matching conditions, limit and offset optionally. 
 
- `int count()` return the count of the query results
+ ```pike
+ int count()
+ ``` 
+ return the count of the query results
 
-`object select(string columns)` sets the 'select' fields in the query
+```pike
+object select(string columns)
+```
+ sets the 'select' fields in the query
 
-`object selectMax(string column)` set the MAX(field) in the query
+```pike
+object selectMax(string column)
+```
+set the MAX(field) in the query
 
-`object selectMin(string column)` set the MIN(field) in the query
+```pike
+object selectMin(string column)
+``` 
+set the MIN(field) in the query
 
-`object where(string column, mixed value)` sets a where condition in the query
+```pike
+object where(string column, mixed value)
+```
+sets a where condition in the query
 
-`object orWhere(string column, mixed value)`
+```pike
+object orWhere(string column, mixed value)
+```
+sets a or where condition in the query
 
-`object whereIn(string column, array values)`
+```pike
+object whereIn(string column, array values)
+```
+sets a where in condition in the query
 
-`object orWhereIn(string column, array values)`
+```pike
+object orWhereIn(string column, array values)
+```
+sets a or where in condition in the query
 
-`object orderBy(string column, string|void direction)`
+```pike
+object orderBy(string column, string|void direction)
+```
+sets a order by in the query
 
-`object innerJoin(string joinTable, string joinCondition)`
+```pike
+object innerJoin(string joinTable, string joinCondition)
+```
+sets a innerJoin
 
-`object leftJoin(string joinTable, string joinCondition)`
+```pike
+object leftJoin(string joinTable, string joinCondition)
+```
+sets a leftJoin
 
-`object rightJoin(string joinTable, string joinCondition)`
+```pike
+object rightJoin(string joinTable, string joinCondition)
+```
+sets a rightJoin
 
-`object outerJoin(string joinTable, string joinCondition)`
+```pike
+object outerJoin(string joinTable, string joinCondition)
+```
+sets a outerJoin
 
-`object limit(int limit)`
+```pike
+object limit(int limit)
+```
+sets the limit in the query
 
-`object offset(int offset)`
+```pike
+object offset(int offset)
+```
+sets the outer in the query
 
-`string getQuery()` return the query as a string for debugging purposes
+```pike
+string getQuery()
+```
+return the query as a string for debugging purposes
+
+
+--- 
+
+END
