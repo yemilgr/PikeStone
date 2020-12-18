@@ -1,28 +1,50 @@
 import ".";
 
-mapping params = ([]);
+mapping paramsBag = ([]);
+
+mapping rulesBag = ([]);
+
+mapping inputBag = ([]);
 
 mapping errorBag = ([]);
 
-object create(mapping|void params)
+object create(mapping|void paramsBag)
 {
-    this_program::params = params;
+    this_program::paramsBag = paramsBag;
     return this_object();
 }
 
-//validate input agains rules 
-mapping validate(mapping inputRules)
+object rules(mapping rules)
 {
-    mapping validInput = ([]);
+    this_program::rulesBag = rules;
+    return this_object();
+}
 
-    foreach (inputRules; string input; mixed rules) {
-        mixed paramValue = params[input];
+bool run()
+{
+    this_program::validate();
+    return sizeof(this_program::errorBag) == 0;
+}
+
+//validate input agains rules 
+mapping validate(mapping|void inputRules)
+{
+    if (!zero_type(inputRules)) {
+        rulesBag = inputRules;
+    }
+
+    if (zero_type(rulesBag)) {
+        throw("No rules defined");
+    }
+
+    foreach (rulesBag; string input; mixed rules) {
+        mixed paramValue = paramsBag[input];
         
         if (stringp(rules)) { rules = rules / "|"; }
 
         foreach (rules;; string validator) {
             array validatorParts = validator / ":";
-            string validatorFun = validatorParts[0];
+            string validatorFun = validatorParts[0] + "_validator";
             string validatorArg = sizeof(validatorParts) > 1 ? validatorParts[1] : UNDEFINED;
 
             if (!this_program()[validatorFun]) {
@@ -38,16 +60,16 @@ mapping validate(mapping inputRules)
 
         //add as an valid if no validation errors found
         if (zero_type(errorBag[input]) && paramValue) {
-            validInput[input] = paramValue;
+            inputBag[input] = paramValue;
         }
     }
 
-    return validInput;
+    return inputBag;
 }
 
-bool isRequired(string validator)
+mapping validData()
 {
-    return validator == "required";
+    return inputBag;
 }
 
 bool hasErrors()
@@ -60,86 +82,89 @@ mapping errors()
     return this_program::errorBag;
 }
 
+bool isRequired(string validator)
+{
+    return validator == "required_validator";
+}
 
 /////// Validators //////
 
-bool required(mixed value)
+bool required_validator(mixed value)
 {
     return zero_type(value) || value == UNDEFINED || value == "" ? false : true;
 }
 
-bool alpha(mixed value)
+bool alpha_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("^[A-Za-zÀ-ÖØ-öø-ÿ ]*$");
     return regexp->match(value);
 }
 
-bool alpha_numeric(mixed value)
+bool alpha_numeric_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ]*$");
     return regexp->match(value);
 }
 
-bool intp(mixed value)
+bool integer_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("^[\\-]?[0-9]+$");
     return regexp->match(value);
 }
 
-bool floatp(mixed value)
+bool float_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("^[\\-]?[0-9]+\\.[0-9]*$");
     return regexp->match(value);
 }
 
-bool is_array(mixed value) {
+bool array_validator(mixed value) {
     return arrayp(value);
 }
 
-bool base64(mixed value)
+bool base64_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$");
     return regexp->match(value);
 }
 
 //@todo not work
-bool email(mixed value)
+bool email_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("[\\w-]+(\\.[\\w-]+)*@[\\w-]+(\\.[\\w-]+)+?[a-z]{1,}$");
     return regexp->match(value);
 }
 
 //@todo implement
-bool phone(mixed value)
+bool phone_validator(mixed value)
 {
     return false;
 }
 
-bool dni(mixed value)
+bool dni_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("(([0-9]{8})([-]?)([A-HJ-NP-TV-Z]{1}))");
     return regexp->match(value);
 }
 
-bool nie(mixed value)
+bool nie_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("^[XYZ]{1}[0-9]{7}[A-HJ-NP-TV-Z]{1}$");
     return regexp->match(value);
 }
 
-bool nif(mixed value)
+bool nif_validator(mixed value)
 {
     mixed regexp = Regexp.PCRE.StudiedWidestring("^[0-9]{8}[A-HJ-NP-TV-Z]{1}$");
     return regexp->match(value);
 }
 
-bool min_length(mixed value, mixed arg)
+bool min_length_validator(mixed value, mixed arg)
 {
     return sizeof(value) >= (int)arg;
 }
 
-bool max_length(mixed value, mixed arg)
+bool max_length_validator(mixed value, mixed arg)
 {
     return sizeof(value) <= (int)arg;
 }
-
