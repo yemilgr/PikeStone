@@ -47,7 +47,7 @@
 
 ### Routes with lambda functions callback
 
-`GET` route to math `/` path that execute an anonymous function 
+`GET` route to match `/` path that execute an anonymous function 
 ```pike
 router->get("/", lambda() {
     return "Hello world!";
@@ -61,7 +61,7 @@ router->post("/hello/$1", lambda(string name) {
 });
 ```
 
-`POST|GET` to math either 'POST' or 'GET' http method
+`POST|GET` to match either 'POST' or 'GET' http method
 ```pike
 router->any("GET|POST", "/any-of-methods", lambda() {
     return "Respond to method get or post";
